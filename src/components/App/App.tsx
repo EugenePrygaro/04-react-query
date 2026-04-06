@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useEffect } from 'react';
 import SearchBar from '../SearchBar/SearchBar';
 import MovieGrid from '../MovieGrid/MovieGrid';
 import Loader from '../Loader/Loader';
@@ -12,7 +13,6 @@ import { type Movie } from '../../types/movie';
 import toast, { Toaster } from 'react-hot-toast';
 
 function App() {
-  // const [movies, setMovies] = useState<Movie[]>([]);
   const [query, setQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [isOpenModal, setIsOpenModal] = useState(false);
@@ -36,6 +36,12 @@ function App() {
   };
 
   const isDataEmpty = data?.results.length === 0;
+  useEffect(() => {
+    if (isSuccess && isDataEmpty) {
+      toast('No movies found for your request.');
+    }
+  }, [isSuccess, isDataEmpty]);
+
   return (
     <>
       <div>
@@ -44,14 +50,13 @@ function App() {
       <SearchBar onSubmit={handleSubmitSearchBar}></SearchBar>
       {isSuccess && data.total_pages > 1 && (
         <ReactPaginate
-          totalPages={data.total_pages}
-          page={currentPage}
-          setPage={setCurrentPage}
+          pageCount={data.total_pages}
+          forcePage={currentPage - 1}
+          onPageChange={(selected) => setCurrentPage(selected + 1)}
         />
       )}
       {isLoading && <Loader></Loader>}
       {isError && <ErrorMessage />}
-      {isDataEmpty && isSuccess && toast('No movies found for your request.')}
       {!isDataEmpty && isSuccess && (
         <MovieGrid
           onSelect={handleSelectMovie}
